@@ -33,6 +33,8 @@
 #endif
 
 #define DRIVER_NAME "hall_pen_detect"
+#define KEY_PEN_REMOVED   0x259
+#define KEY_PEN_INSERTED  0x25a
 #define LOG_DBG(fmt, args...)    pr_debug(DRIVER_NAME " [DBG]" "<%s:%d>"fmt, __func__, __LINE__, ##args)
 #define LOG_INFO(fmt, args...)   pr_info(DRIVER_NAME " [INFO]" "<%s:%d>"fmt, __func__, __LINE__, ##args)
 #define LOG_ERR(fmt, args...)    pr_err(DRIVER_NAME " [ERR]" "<%s:%d>"fmt, __func__, __LINE__, ##args)
@@ -180,6 +182,13 @@ static void pen_report_function(struct work_struct *dat)
 		else
 			hall_sensor_dev->status = 1;
 		input_report_switch(hall_sensor_dev->hall_dev, SW_PEN_INSERTED, !hall_sensor_dev->status);
+		if (hall_sensor_dev->status) {
+			input_report_key(hall_sensor_dev->hall_dev, KEY_PEN_REMOVED, 1);
+			input_report_key(hall_sensor_dev->hall_dev, KEY_PEN_REMOVED, 0);
+		} else {
+			input_report_key(hall_sensor_dev->hall_dev, KEY_PEN_INSERTED, 1);
+			input_report_key(hall_sensor_dev->hall_dev, KEY_PEN_INSERTED, 0);
+		}
 		input_sync(hall_sensor_dev->hall_dev);
 #ifdef CONFIG_HAS_WAKELOCK
 		wake_unlock(&hall_sensor_dev->wake_lock);
@@ -422,6 +431,8 @@ static int hall_sensor_probe(struct platform_device *pdev)
 	/* Set all the keycodes */
 	hall_sensor_dev->hall_dev->phys= "/dev/input/pen_detect";
 	input_set_capability(hall_sensor_dev->hall_dev, EV_SW, SW_PEN_INSERTED);
+	input_set_capability(hall_sensor_dev->hall_dev, EV_KEY, KEY_PEN_REMOVED);
+	input_set_capability(hall_sensor_dev->hall_dev, EV_KEY, KEY_PEN_INSERTED);
 #else
 	__set_bit(EV_ABS, hall_sensor_dev->hall_dev->evbit);
 	input_set_abs_params(hall_sensor_dev->hall_dev, ABS_DISTANCE, -1, 100, 0, 0);
