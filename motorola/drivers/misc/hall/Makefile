@@ -1,3 +1,5 @@
+KBUILD_OPTIONS += CONFIG_HALL_PASSIVE_PEN=y
+
 all: modules
 
 modules:
