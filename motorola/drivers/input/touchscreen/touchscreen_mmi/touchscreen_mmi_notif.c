@@ -279,8 +279,6 @@ static void ts_mmi_queued_power_on(struct ts_mmi_dev *touch_cdev)
 		dev_dbg(DEV_MMI, "%s: resetting...\n", __func__);
 		TRY_TO_CALL(reset, TS_MMI_RESET_HARD);
 	}
-
-	touch_cdev->touch_powered = true;
 }
 
 static void ts_mmi_queued_power_off(struct ts_mmi_dev *touch_cdev)
@@ -292,8 +290,6 @@ static void ts_mmi_queued_power_off(struct ts_mmi_dev *touch_cdev)
 		TRY_TO_CALL(power, TS_MMI_POWER_OFF);
 		dev_dbg(DEV_MMI, "%s: touch powered off\n", __func__);
 	}
-
-	touch_cdev->touch_powered = false;
 }
 
 static void ts_mmi_queued_resume(struct ts_mmi_dev *touch_cdev)
@@ -480,7 +476,7 @@ static void ts_mmi_worker_func(struct work_struct *w)
 				break;
 
 		case TS_MMI_SET_GESTURES:
-			if (touch_cdev->touch_powered)
+			if (!atomic_read(&touch_cdev->touch_stopped))
 				break;
 
 			ts_mmi_queued_power_on(touch_cdev);
